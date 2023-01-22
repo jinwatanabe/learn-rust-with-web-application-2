@@ -7,4 +7,8 @@ dev:
 	sqlx migrate run
 	cd my-todo && cargo watch -x run
 test:
-	cargo test
+	cd /app/my-todo && cargo test
+
+# standalone test
+test-s:
+	cd /app/my-todo && cargo test --no-default-features

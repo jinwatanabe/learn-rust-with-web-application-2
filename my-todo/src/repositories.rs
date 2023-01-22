@@ -135,6 +135,81 @@ impl TodoRepository for TodoRepositoryForDb {
     }
 }
 
+#[cfg(feature = "dastabase-test")]
+pub mod test {
+    use super::*;
+    use dotenv::dotenv;
+    use sqlx::PgPool;
+    use std::env;
+
+    #[tokio::test]
+    async fn crud_scenario() {
+        dotenv().ok();
+        let database_url = &env::var("DATABASE_URL").expect("undifined [DATABASE_URL]");
+        let pool = PgPool::connect(database_url).await.expect(&format!(
+            "failed to connect database, url is [{}]",
+            database_url
+        ));
+
+        let repository = TodoRepositoryForDb::new(pool.clone());
+        let todo_text = "[crud_scenario] text";
+
+        // create
+        let created = repository
+            .create(CreateTodo::new(todo_text.to_string()))
+            .await
+            .expect("[create] returned Err");
+        assert_eq!(created.text, todo_text);
+        assert!(!created.completed);
+
+        // find
+        let todo = repository
+            .find(created.id)
+            .await
+            .expect("[find] returned Err");
+        assert_eq!(created, todo);
+
+        // all
+        let todos = repository.all().await.expect("[all] returned Err");
+        let todo = todos.first().unwrap();
+        assert_eq!(*todo, created);
+
+        // update
+        let updated_text = "[crud_scenario] updated text";
+        let todo = repository
+            .update(
+                todo.id,
+                UpdateTodo {
+                    text: Some(updated_text.to_string()),
+                    completed: Some(true),
+                },
+            )
+            .await
+            .expect("[update] returned Err");
+        assert_eq!(created.id, todo.id);
+        assert_eq!(todo.text, updated_text);
+
+        // delete
+        let _ = repository
+            .delete(todo.id)
+            .await
+            .expect("[delete] returned Err");
+        let res = repository.find(created.id).await;
+        assert!(res.is_err());
+
+        let todo_rows = sqlx::query(
+            r#"
+            SELECT * FROM todos
+            "#,
+        )
+        .bind(todo.id)
+        .fetch_all(&pool)
+        .await
+        .expect("[deledte] todo_labels fetch error");
+        assert!(todo_rows.len() == 0);
+    }
+}
+
 #[cfg(test)]
 pub mod test_utils {
     use anyhow::Context;
