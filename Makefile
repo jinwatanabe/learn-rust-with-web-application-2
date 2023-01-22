@@ -3,6 +3,8 @@ build:
 db:
 	docker-compose up database
 dev:
-	cargo watch -x run
+	sqlx db create
+	sqlx migrate run
+	cd my-todo && cargo watch -x run
 test:
 	cargo test

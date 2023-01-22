@@ -8,6 +8,10 @@ services:
       - "3000:3000"
     volumes:
       - .:/app
+    env_file:
+      - .env
+    networks:
+      - app-net
   database:
     build:
       context: ./database
@@ -20,9 +24,15 @@ services:
     environment:
       POSTGRES_PASSWORD: admin
       POSTGRES_USER: admin
-      POSTGRES_DB: todos
+      POSTGRES_DB: todosnetworkName
       TZ: Asia/Tokyo
     restart: always
+    networks:
+      - app-net
   
 volumes:
   pgdata:
+
+networks:
+  app-net:
+    driver: bridge
