@@ -47,7 +47,7 @@ impl LabelRepository for LabelRepositoryForDb {
 		.await?;
 
 		if let Some(label) = optional_label {
-			return Err(RepositoryError::Duplicate(label.id))
+			return Err(RepositoryError::Duplicate(label.id).into())
 		}
 
 		let label = sqlx::query_as::<_, Label>(
