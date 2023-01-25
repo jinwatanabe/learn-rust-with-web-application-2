@@ -1,4 +1,4 @@
-import { NewTodoPayload, Todo } from "../../types/todo";
+import type { NewTodoPayload, Todo, UpdateTodoPayload } from "../../types/todo";
 
 export const addTodoItem = async (payload: NewTodoPayload) => {
   const res = await fetch("http://localhost:3000/todos", {
@@ -9,7 +9,7 @@ export const addTodoItem = async (payload: NewTodoPayload) => {
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
-    throw new Error("Failed to add todo item");
+    throw new Error("add todo request failed");
   }
   const json: Todo = await res.json();
   return json;
@@ -18,14 +18,13 @@ export const addTodoItem = async (payload: NewTodoPayload) => {
 export const getTodoItems = async () => {
   const res = await fetch("http://localhost:3000/todos");
   if (!res.ok) {
-    throw new Error("Failed to fetch todo items");
+    throw new Error("get todo request failed");
   }
   const json: Todo[] = await res.json();
   return json;
 };
 
-export const updateTodoItem = async (todo: Todo) => {
-  console.log(todo);
+export const updateTodoItem = async (todo: UpdateTodoPayload) => {
   const { id, ...updateTodo } = todo;
   const res = await fetch(`http://localhost:3000/todos/${id}`, {
     method: "PATCH",
@@ -35,7 +34,7 @@ export const updateTodoItem = async (todo: Todo) => {
     body: JSON.stringify(updateTodo),
   });
   if (!res.ok) {
-    throw new Error("Failed to update todo item");
+    throw new Error("update todo request failed");
   }
   const json: Todo = await res.json();
   return json;
@@ -46,6 +45,6 @@ export const deleteTodoItem = async (id: number) => {
     method: "DELETE",
   });
   if (!res.ok) {
-    throw new Error("Failed to delete todo item");
+    throw new Error("delete todo request failed");
   }
 };
